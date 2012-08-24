@@ -242,6 +242,51 @@
         // Return the instance of EventEmitter to allow chaining
         return this;
     };
+    
+    /**
+     * Emits an event of your choice.
+     * When emitted, every listener attached to that event will be executed.
+     * If you pass the optional argument array then those arguments will be passed to every listener upon execution.
+     * Because it uses `apply`, your array of arguments will be passed as if you wrote them out separately.
+     * So they will not arrive within the array on the other side, they will be separate.
+     *
+     * @param {String} evt Name of the event to emit and execute listeners for.
+     * @param {Array} [args] Optional array of arguments to be passed to each argument.
+     * @returns {Object} Current instance of EventEmitter for chaining.
+     */
+    proto.emitEvent2 = function(evt, args, cancelable, chainable, bubbles) {
+        // Get the listeners for the event
+        // Also initialise any other required variables
+        var listeners = this.getListeners(evt)
+          , i = listeners.length
+          , result;
+
+        // Make args default to an empty array
+        args = args || [];
+
+        while(i--) {
+            // Execute every listener attached to the event
+            // Apply the arguments array to each listener too
+            // We store the returned value
+            result = listeners[i].apply(null, args);
+            
+            // We check if the emitted event is cancelable and cancelled
+            // If so we break the loop
+            if (cancelable && result === false) {
+                break;
+            }
+            
+            // We check if the emitted event is chainable
+            // We check if the returned argument is an array
+            // If so we set the arguments array to the returned array
+            if (chainable && result instanceof Array) {
+                args = result;
+            }
+        }
+
+        // Return the instance of EventEmitter to allow chaining
+        return this;
+    };    
 
     // Expose the class either via AMD or the global object
     if(typeof define === 'function' && define.amd) {
